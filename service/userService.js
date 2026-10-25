@@ -1,10 +1,26 @@
 const User = require("../model/userSchema");
+const bcrypt = require("bcrypt")
 
-const createUserService = (name, email, mobile, password) => {
-  const response = new User({ name, email, mobile, password });
-  response.save();
+const createUserService = async(name, email, mobile, password) => {
+    const hashedPassword =await bcrypt.hash(password,10)
+  const response =await new User({ name, email, mobile, password : hashedPassword });
+ await response.save();
   return response;
 };
+
+const loginService = async(email,password)=>{
+    const response =await User.findOne({email})
+    if(!response){
+        throw new Error("Invalid credentials");
+    }
+      const isMatch = bcrypt.compare(password,response.password)
+      if(!isMatch){
+        throw new Error("Invalid credentials");
+      }
+    
+      return response
+
+}
 
 const updateUserService = (id, name, email, mobile, password) => {
   const response = User.findByIdAndUpdate(
@@ -35,5 +51,6 @@ module.exports = {
   getUserByIdService,
   getAllUserService,
   updateUserService,
+  loginService,
   deleteUserService,
 };
