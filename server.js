@@ -3,13 +3,15 @@ const configDb = require("./utils/dbConfig");
 let port = process.env.PORT || 4000;
 require("dotenv").config();
 const app = express();
-const productSchema = require("./router/productRoute");
+const productRoute = require("./router/productRoute");
+const userRoute = require("./router/userRoute")
 app.use(express.json());
 app.get("/no-sql", (req, res) => {
   res.send("server working correctly");
 });
 
-app.use("/", productSchema);
+app.use("/", productRoute);
+app.use("/",userRoute)
 app.listen(port, () => {
   configDb();
   console.log("server connected");
