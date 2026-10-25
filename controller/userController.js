@@ -1,4 +1,4 @@
-const {createUserService,getUserByIdService} = require("../service/userService")
+const {createUserService,getUserByIdService,getAllUserService,updateUserService, deleteUserService} = require("../service/userService")
 const {
   successResponse,
   errorResponse,
@@ -18,6 +18,38 @@ const createUserController = async(req,res)=>{
     }
 }
 
+const updateUserController =async (req,res)=>{
+    try {
+        const {name,email,mobile,password} = req.body;
+        const {id} = req.params
+         const response = await updateUserService(id,name,email,mobile,password)
+         successResponse(res,
+          message = "Success",
+          response,
+          statusCode = 200)
+    } catch (error) {
+         errorResponse(  res,
+  message = error.message,
+  statusCode = 500)
+    }
+}
+
+const deleteUserController = async (req,res)=>{
+    try {
+        const {id} = req.params
+        const response = await deleteUserService(id)
+        successResponse(res,
+          message = "Success",
+          response,
+          statusCode = 200)
+    } catch (error) {
+         errorResponse(  res,
+  message = error.message,
+  statusCode = 500)
+    }
+}
+
+
 const getUserbyIdController =async (req,res)=>{
       try {
         const {id} = req.params;
@@ -33,4 +65,19 @@ const getUserbyIdController =async (req,res)=>{
       }
 }
 
-module.exports= {createUserController, getUserbyIdController}
+const getAllUserController =async (req,res)=>{
+      try {
+       
+         const response = await getAllUserService()
+         successResponse(res,
+          message = "Success",
+          response,
+          statusCode = 200)
+      } catch (error) {
+         errorResponse(  res,
+  message = error.message,
+  statusCode = 500)
+      }
+}
+
+module.exports= {createUserController, getUserbyIdController,getAllUserController, updateUserController,deleteUserController}
