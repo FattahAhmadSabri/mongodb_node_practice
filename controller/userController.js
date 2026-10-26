@@ -6,6 +6,7 @@ const {
   deleteUserService,
   loginService,
 } = require("../service/userService");
+const jwt = require("jsonwebtoken")
 const {
   successResponse,
   errorResponse,
@@ -34,10 +35,30 @@ const updateUserController = async (req, res) => {
 const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const response = await loginService(email, password);
-    successResponse(res, (message = "Success"), response, (statusCode = 200));
+    const user = await loginService(email, password);
+
+    
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return successResponse(
+      res,
+      "Success",
+      {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email
+        }
+      },
+      200
+    );
   } catch (error) {
-    errorResponse(res, (message = error.message), (statusCode = 500));
+    return errorResponse(res, error.message, 500);
   }
 };
 
