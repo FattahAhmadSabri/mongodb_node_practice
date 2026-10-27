@@ -6,4 +6,9 @@ const createProductService =(title, price,description, imageUrl)=>{
       
 }
 
-module.exports= {createProductService}
+const getAllProductService = ()=>{
+      const response = Product.find()
+      return response
+}
+
+module.exports= {createProductService, getAllProductService}

@@ -8,68 +8,69 @@ const addCartService = async (userId, productId) => {
     throw new Error("Product not found");
   }
 
-  let cart = await Cart.findOne({ userId });
-
-  if (!cart) {
-    cart = await Cart.create({
-      userId,
-      items: [
-        {
-          productId,
-          quantity: 1,
-          price: product.price,
-        },
-      ],
-    });
-
-    return cart;
-  }
-
-  const existingItem = cart.items.find(
-    (item) => item.productId.toString() === productId.toString(),
-  );
+  const existingItem = await Cart.findOne({
+    userId,
+    productId,
+  });
 
   if (existingItem) {
     existingItem.quantity += 1;
-  } else {
-    cart.items.push({
-      productId,
-      quantity: 1,
-      price: product.price,
-    });
+    await existingItem.save();
+    return existingItem;
   }
 
-  await cart.save();
+  const cart = await Cart.create({
+    userId,
+    productId,
+    quantity: 1,
+    price: product.price,
+  });
 
   return cart;
 };
 
 const getCartItemsService = async (userId) => {
-  const response = await Cart.findOne({ userId }).populate("items.productId", "title price imageUrl");;
+  const response = await Cart.find({ userId:userId });
 
   return response;
 };
 
-const deleteCartService = async (userId, productId) => {
-  const cart = await Cart.findOne({ userId });
+const updateCartQuantityService = async (userId, productId, action) => {
+  const quantityChange = action === "increase" ? 1 : -1;
 
-  if (!cart) {
-    throw new Error("Cart not found");
-  }
+  const cartItem = await Cart.findOne({
+    userId,
+    productId,
+  });
 
-  const itemIndex = cart.items.findIndex(
-    (item) => item.productId.toString() === productId.toString(),
-  );
-
-  if (itemIndex === -1) {
+  if (!cartItem) {
     throw new Error("Product not found in cart");
   }
 
-  cart.items.splice(itemIndex, 1);
+  if (action === "decrease" && cartItem.quantity === 1) {
+    throw new Error("Quantity cannot be less than 1");
+  }
 
-  await cart.save();
+  const updatedItem = await Cart.findOneAndUpdate(
+    { userId, productId },
+    { $inc: { quantity: quantityChange } },
+    { new: true, runValidators: true },
+  );
 
-  return cart;
+  return updatedItem;
 };
 
-module.exports = { addCartService, deleteCartService, getCartItemsService };
+const removeProductFromCart = (userId, productId) => {
+  const response = Cart.findOneAndDelete({
+    userId: userId,
+    productId: productId,
+  });
+  return response;
+};
+
+module.exports = {
+  addCartService,
+  updateCartQuantityService,
+  getCartItemsService,
+  removeProductFromCart,
+};
